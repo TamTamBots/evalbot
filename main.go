@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"html"
 	"log"
-	"strings"
 	"os"
+	"runtime"
+	"strings"
 
 	"github.com/anonyindian/gottbot"
 	"github.com/anonyindian/gottbot/ext"
@@ -14,8 +15,14 @@ import (
 	piston "github.com/milindmadhukar/go-piston"
 )
 
-var client *piston.Client
+const (
+	LOGS_GROUP = -86066006261922
+	OWNER_ID   = 590383618466
+)
+
 var (
+	client *piston.Client
+
 	languages      *[]string
 	availableLangs string
 )
@@ -35,8 +42,11 @@ func main() {
 	dispatcher := updater.Dispatcher
 
 	dispatcher.AddHandler(handlers.CommandHandler("start", start))
+	dispatcher.AddHandler(handlers.CommandHandler("id", id))
 	dispatcher.AddHandler(handlers.CommandHandler("help", help))
 	dispatcher.AddHandler(handlers.CommandHandler("languages", languagesC))
+	dispatcher.AddHandler(handlers.CommandHandler("stats", ownerOnly(stats)))
+	dispatcher.AddHandler(handlers.BotStartedHandler(botstarted))
 	dispatcher.AddHandler(handlers.BotAddedHandler(botadded))
 	dispatcher.AddHandlerToGroup(1, handlers.MessageHandler(filters.Message.Prefix("/"), langfound(eval)))
 
@@ -61,6 +71,28 @@ func languagesC(bot *gottbot.Bot, ctx *ext.Context) error {
 	return ext.EndGroups
 }
 
+func botstarted(bot *gottbot.Bot, ctx *ext.Context) error {
+	_, _ = bot.SendMessage(ctx.EffectiveChatId, "", &gottbot.SendMessageOpts{
+		Attachments: []gottbot.AttachmentRequest{{
+			Payload: &gottbot.StickerPayload{
+				Code: "d7c1fd51c4",
+			},
+		}},
+	})
+
+	user := ctx.EffectiveUser
+	var text string
+	if user.Username != "" {
+		text = fmt.Sprintf(`<a href="https://tamtam.chat/%s">%s</a> started the bot.`, user.Username, html.EscapeString(user.Name))
+	} else {
+		text = fmt.Sprintf(`<a href="tamtam://user/%d">%s</a> started the bot.`, user.UserId, html.EscapeString(user.Name))
+	}
+	_, _ = bot.SendMessage(LOGS_GROUP, text, &gottbot.SendMessageOpts{
+		Format: gottbot.Html,
+	})
+	return start(bot, ctx)
+}
+
 func botadded(bot *gottbot.Bot, ctx *ext.Context) error {
 	if ctx.BotAdded.IsChannel {
 		return ext.EndGroups
@@ -80,9 +112,11 @@ Hit <code>/help</code> for more info.
 }
 
 func start(bot *gottbot.Bot, ctx *ext.Context) error {
-	msg := ctx.EffectiveMessage
 	user := ctx.EffectiveUser
-	msg.Reply(bot, fmt.Sprintf(`
+	if user == nil {
+		user = new(gottbot.User)
+	}
+	_, _ = bot.SendMessage(ctx.EffectiveChatId, fmt.Sprintf(`
 Hey %s, I am a bot to eval codes of various languages.
 I'm built using the piston eval engine and the gottbot library.
 Hit <code>/help</code> for info related to commands.   
@@ -112,6 +146,7 @@ Here is the list of all commands:
 
 - <code>/start</code>: Start the bot
 - <code>/help</code>: Prints this message
+- <code>/id</code>: Get id of current chat and user
 - <code>/languages</code>: List all supported languages
 - <code>/{language} eval code...</code> : Eval a code in 'language'
 
@@ -138,6 +173,20 @@ func langfound(callback handlers.Callback) handlers.Callback {
 		}
 		return ext.EndGroups
 	}
+}
+
+func id(bot *gottbot.Bot, ctx *ext.Context) error {
+	var text string
+	if user := ctx.EffectiveUser; user != nil {
+		text = fmt.Sprintf("**User ID**: `%d`\n", user.UserId)
+	}
+	text += fmt.Sprintf("**Chat ID**: `%d`", ctx.EffectiveChatId)
+	_, _ = ctx.EffectiveMessage.Reply(bot,
+		text,
+		&gottbot.SendMessageOpts{
+			Format: gottbot.Markdown,
+		})
+	return ext.EndGroups
 }
 
 func eval(bot *gottbot.Bot, ctx *ext.Context) error {
@@ -173,5 +222,26 @@ func eval(bot *gottbot.Bot, ctx *ext.Context) error {
 	if err != nil {
 		log.Println("failed to send message:", err.Error())
 	}
+	return ext.EndGroups
+}
+
+func ownerOnly(cb handlers.Callback) handlers.Callback {
+	return func(bot *gottbot.Bot, ctx *ext.Context) error {
+		if ctx.EffectiveUser != nil && ctx.EffectiveUser.UserId == OWNER_ID {
+			return cb(bot, ctx)
+		}
+		return ext.EndGroups
+	}
+}
+
+func stats(bot *gottbot.Bot, ctx *ext.Context) error {
+	text := fmt.Sprintf(`
+**Stats**
+Goroutines: %d
+CPUs: %d
+	`, runtime.NumGoroutine(), runtime.NumCPU())
+	_, _ = ctx.EffectiveMessage.Reply(bot, text, &gottbot.SendMessageOpts{
+		Format: gottbot.Markdown,
+	})
 	return ext.EndGroups
 }
