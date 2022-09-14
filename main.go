@@ -210,7 +210,6 @@ func eval(bot *gottbot.Bot, ctx *ext.Context) error {
 			{Content: text},
 		},
 	)
-
 	if err != nil {
 		_, _ = msg.Reply(bot, fmt.Sprintf("failed to eval: %s", err.Error()), nil)
 		return ext.EndGroups
