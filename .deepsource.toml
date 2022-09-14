@@ -6,7 +6,3 @@ enabled = true
 
   [analyzers.meta]
   import_root = "github.com/TamTamBots/evalbot"
-
-[[transformers]]
-name = "gofumpt"
-enabled = true
