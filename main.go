@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	LOGS_GROUP = -86066006261922
-	OWNER_ID   = 590383618466
+	LogsGroup = -86066006261922
+	OwnerId   = 590383618466
 )
 
 var (
@@ -48,7 +48,11 @@ func main() {
 	dispatcher.AddHandler(handlers.CommandHandler("stats", ownerOnly(stats)))
 	dispatcher.AddHandler(handlers.BotStartedHandler(botstarted))
 	dispatcher.AddHandler(handlers.BotAddedHandler(botadded))
-	dispatcher.AddHandlerToGroup(1, handlers.MessageHandler(filters.Message.Prefix("/"), langfound(eval)))
+	dispatcher.AddHandlerToGroup(1, &handlers.Message{
+		Response:    langfound(eval),
+		Filter:      filters.Message.Prefix("/"),
+		AllowEdited: true,
+	})
 
 	fmt.Println("Started eval bot with long polling...")
 
@@ -87,7 +91,7 @@ func botstarted(bot *gottbot.Bot, ctx *ext.Context) error {
 	} else {
 		text = fmt.Sprintf(`<a href="tamtam://user/%d">%s</a> started the bot.`, user.UserId, html.EscapeString(user.Name))
 	}
-	_, _ = bot.SendMessage(LOGS_GROUP, text, &gottbot.SendMessageOpts{
+	_, _ = bot.SendMessage(LogsGroup, text, &gottbot.SendMessageOpts{
 		Format: gottbot.Html,
 	})
 	return start(bot, ctx)
@@ -227,7 +231,7 @@ func eval(bot *gottbot.Bot, ctx *ext.Context) error {
 
 func ownerOnly(cb handlers.Callback) handlers.Callback {
 	return func(bot *gottbot.Bot, ctx *ext.Context) error {
-		if ctx.EffectiveUser != nil && ctx.EffectiveUser.UserId == OWNER_ID {
+		if ctx.EffectiveUser != nil && ctx.EffectiveUser.UserId == OwnerId {
 			return cb(bot, ctx)
 		}
 		return ext.EndGroups
@@ -236,10 +240,11 @@ func ownerOnly(cb handlers.Callback) handlers.Callback {
 
 func stats(bot *gottbot.Bot, ctx *ext.Context) error {
 	text := fmt.Sprintf(`
-**Stats**
+**Stats:**
+Go Version: %s
 Goroutines: %d
 CPUs: %d
-	`, runtime.NumGoroutine(), runtime.NumCPU())
+	`, runtime.Version(), runtime.NumGoroutine(), runtime.NumCPU())
 	_, _ = ctx.EffectiveMessage.Reply(bot, text, &gottbot.SendMessageOpts{
 		Format: gottbot.Markdown,
 	})

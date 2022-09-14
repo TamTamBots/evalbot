@@ -1,6 +1,6 @@
 module github.com/TamTamBots/evalbot
 
-go 1.18
+go 1.19
 
 require (
 	github.com/anonyindian/gottbot v0.0.0-20220913181859-657d6ba04a62
