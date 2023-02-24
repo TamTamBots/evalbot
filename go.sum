@@ -1,5 +1,5 @@
-github.com/anonyindian/gottbot v0.0.0-20220913181859-657d6ba04a62 h1:RLovKj5uVwTr2VQhDWCRVDNjcqvUrR5uG7akKsqQUls=
-github.com/anonyindian/gottbot v0.0.0-20220913181859-657d6ba04a62/go.mod h1:7RWCUN+v+4h4irYGz0L8z6tDqOdTaAo7s/uwgYJrVrY=
+github.com/anonyindian/gottbot v1.0.0-beta02 h1:OygZBiH22w9njUFRLiQSW4fGrlwUfL6DFefkNAxtR+Q=
+github.com/anonyindian/gottbot v1.0.0-beta02/go.mod h1:7RWCUN+v+4h4irYGz0L8z6tDqOdTaAo7s/uwgYJrVrY=
 github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
 github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/milindmadhukar/go-piston v0.0.0-20211122120254-64da61081d05 h1:DJtDN26io353OHf60ahLS7ZmwnNmiMEoIL1Z5HT3v8I=
