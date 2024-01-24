@@ -7,4 +7,4 @@ require (
 	github.com/milindmadhukar/go-piston v0.0.0-20211122120254-64da61081d05
 )
 
-require github.com/google/uuid v1.5.0 // indirect
+require github.com/google/uuid v1.6.0 // indirect
